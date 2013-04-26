@@ -7,7 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A managed cache that is harder to control the allocation rate but does not produce a significant number of scheduled Runnables for allocating/deallocating
+ * A managed cache that is harder to control the allocation rate but does not produce 
+ * a significant number of scheduled Runnables for allocating/deallocating
  * 
  * For this cache the throttles control the time between each allocation/deallocation
  */
@@ -71,7 +72,7 @@ public class DualThreadedManagedCache {
         @Override
         public void run() {
             while (true) {
-                // remove random one
+                // Remove random one
                 if (cache.size() > 0) {
                     int index = (int) (Math.random()*cache.size());
                     cache.remove(index);
