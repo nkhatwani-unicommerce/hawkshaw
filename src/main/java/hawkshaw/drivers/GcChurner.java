@@ -12,8 +12,8 @@ public class GcChurner {
     private static final int LEAK_SIZE_IN_BYTES = 1024 * 1024;
 
     public static void run(long numObjectsToallocate, int timeTillCollectionStarts, int allocationSize, int productionPeriod) {
-        Throttle createAt = new ConstantThrottle(PRODUCTION_PERIOD_IN_MS);
-        Throttle deleteAt = new ConstantInitialPauseThrottle(timeTillCollectionStarts, PRODUCTION_PERIOD_IN_MS);
+        Throttle createAt = new ConstantThrottle(productionPeriod);
+        Throttle deleteAt = new ConstantInitialPauseThrottle(timeTillCollectionStarts, productionPeriod);
         DualThreadedManagedCache manager = new DualThreadedManagedCache(deleteAt, createAt, allocationSize);
 
         manager.startAllocation(numObjectsToallocate);
