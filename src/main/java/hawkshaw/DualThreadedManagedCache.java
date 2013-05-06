@@ -1,10 +1,12 @@
 package hawkshaw;
 
-import hawkshaw.throttles.Throttle;
+import hawkshaw.throttles.NumberProducer;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A managed cache that is harder to control the allocation rate but does not produce 
@@ -15,15 +17,18 @@ import java.util.List;
 public class DualThreadedManagedCache {
 
     private final List<byte[]> cache;
-    private final Throttle productionThrottle;
-    private final Throttle collectionThrottle;
+    private final NumberProducer productionThrottle;
+    private final NumberProducer collectionThrottle;
     private Thread producer;
     private Thread collector;
+
+    ReentrantLock productionLock = new ReentrantLock();
+    ReentrantLock removalLock = new ReentrantLock();
 
     private volatile boolean running = false;
     private int entryVolume;
 
-    public DualThreadedManagedCache(Throttle collectionThrottle, Throttle productionThrottle, int entryVolume) {
+    public DualThreadedManagedCache(NumberProducer collectionThrottle, NumberProducer productionThrottle, int entryVolume) {
         this.collectionThrottle = collectionThrottle;
         this.productionThrottle = productionThrottle;
         this.entryVolume = entryVolume;
@@ -42,9 +47,9 @@ public class DualThreadedManagedCache {
 
     private class ProduceKey extends Thread {
         private final long numToProduce;
-        private final Throttle productionThrottle;
+        private final NumberProducer productionThrottle;
 
-        public ProduceKey(long numToProduce, Throttle productionThrottle) {
+        public ProduceKey(long numToProduce, NumberProducer productionThrottle) {
             this.numToProduce = numToProduce;
             this.productionThrottle = productionThrottle;
         }
@@ -53,7 +58,7 @@ public class DualThreadedManagedCache {
         public void run() {
             for (long i = 0; i < numToProduce; i++) {
                 cache.add(new byte[entryVolume]);
-                performWait(productionThrottle);
+                performWait(productionThrottle, productionLock);
 
                 if (!isRunning()) {
                     return;
@@ -63,14 +68,15 @@ public class DualThreadedManagedCache {
     }
 
     private class RemoveKey extends Thread {
-        private final Throttle removeThrottle;
+        private final NumberProducer removeThrottle;
 
-        public RemoveKey(Throttle removeThrottle) {
+        public RemoveKey(NumberProducer removeThrottle) {
             this.removeThrottle = removeThrottle;
         }
 
         @Override
         public void run() {
+
             while (true) {
                 // Remove random one
                 if (cache.size() > 0) {
@@ -87,18 +93,20 @@ public class DualThreadedManagedCache {
                         return;
                     }
                 }
-
-                performWait(removeThrottle);
+                performWait(removeThrottle, removalLock);
             }
         }
     }
 
-    private void performWait(Throttle throttle) {
+    private void performWait(NumberProducer throttle, ReentrantLock lock) {
         try {
-            int waitTime = throttle.millisTillEvent();
+            int waitTime = throttle.next();
             if (waitTime > 0) {
-                synchronized (this) {
-                    wait(waitTime);
+                lock.lock();
+                try {
+                    lock.newCondition().await(waitTime, TimeUnit.NANOSECONDS);
+                } finally {
+                    lock.unlock();
                 }
             }
         } catch (InterruptedException e) {
@@ -125,8 +133,18 @@ public class DualThreadedManagedCache {
 
     public void terminate() {
         setRunning(false);
-        synchronized (this) {
-            this.notifyAll();
+        productionLock.lock();
+        try { 
+            productionLock.notifyAll();
+        } finally {
+            productionLock.unlock();
+        }
+
+        removalLock.lock();
+        try { 
+            removalLock.notifyAll();
+        } finally {
+            removalLock.unlock();
         }
         join();
     }
