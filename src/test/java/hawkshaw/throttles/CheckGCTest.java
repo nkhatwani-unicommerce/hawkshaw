@@ -9,8 +9,12 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CheckGCTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckGCTest.class);
 
     @SuppressWarnings("static-method")
     @Test
@@ -19,9 +23,9 @@ public class CheckGCTest {
         long beforeCount = bean.getCollectionCount();
         SimpleMain.run(1000000);
         try {
-                Thread.sleep(3000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
-                System.out.println(e);
+            LOGGER.error("throw InterruptedException");
         }
         long afterCount = bean.getCollectionCount();
         Assert.assertTrue(afterCount > beforeCount);
