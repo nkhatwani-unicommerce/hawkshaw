@@ -18,6 +18,11 @@ public class CheckGCTest {
         GarbageCollectorMXBean bean = getGCMBean();
         long beforeCount = bean.getCollectionCount();
         SimpleMain.run(1000000);
+        try {
+                Thread.sleep(3000);
+        } catch (InterruptedException e) {
+                System.out.println(e);
+        }
         long afterCount = bean.getCollectionCount();
         Assert.assertTrue(afterCount > beforeCount);
     }
