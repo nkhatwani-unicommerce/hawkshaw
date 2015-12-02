@@ -12,21 +12,15 @@
     <!-- TODO Host a site at this domain -->
     <url>http://www.jclarity.org/</url>
     <inceptionYear>2012</inceptionYear>
-
-    <prerequisites>
-        <maven>3.0.4</maven>
-    </prerequisites>
-
+    <organization>
+        <name>jClarity</name>
+        <url>http://www.jclarity.com/</url>
+    </organization>
     <licenses>
         <license>
             <name>GPL v2</name>
         </license>
     </licenses>
-
-    <organization>
-        <name>jClarity</name>
-        <url>http://www.jclarity.com/</url>
-    </organization>
 
     <developers>
         <developer>
@@ -51,6 +45,17 @@
         </developer>
     </developers>
 
+    <mailingLists>
+        <!-- TODO Provide sub/unsub info -->
+        <mailingList>
+            <name>friends@jclarity.com</name>
+        </mailingList>
+    </mailingLists>
+
+    <prerequisites>
+        <maven>3.0.4</maven>
+    </prerequisites>
+
     <!--
     <contributors>
         <contributor>
@@ -59,24 +64,15 @@
         </contributor>
     </contributors>
     -->
-
     <issueManagement>
         <system>GitHub</system>
         <url>https://github.com/jClarity/hawkshaw/issues</url>
     </issueManagement>
-
     <ciManagement>
         <system>Jenkins</system>
         <!-- TODO Provide a publicly accessible CI server -->
         <url>http://ci.jclarity.com:8080/</url>
     </ciManagement>
-
-    <mailingLists>
-        <!-- TODO Provide sub/unsub info -->
-        <mailingList>
-            <name>friends@jclarity.com</name>
-        </mailingList>
-    </mailingLists>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -112,7 +108,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -388,5 +383,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
